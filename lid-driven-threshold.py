@@ -1,16 +1,16 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
+import time
 
 N_GRIDPOINTS = 41                       # Anzahl Gitterpunkte
 DOMAIN_SIZE = 1.                        # Länge des Gebietes
-N_ITERATIONS = 5000                    # Anzahl Zeitschritte
 TIME_STEP_LENGTH = 0.001                # Länge des Zeitschrittes, aufgrund der CFL-Bedingung und der Stabilität
 DENSITY = 1.                            # Dichte
 KINEMATIC_VISCOSITY = 0.01              # kinematische Viskosität
 HORIZONTAL_VELOCITY_TOP = 1.            # Geschwindigkeit oben (Deckel bzw. Wand)
 
-N_PRESSURE_ITERATIONS = 500             # Anzahl Iterationen für den Druck
+N_PRESSURE_ITERATIONS = 100            # Anzahl Iterationen für den Druck
 STABILITY_SAFETY_FACTOR = 0.5           # Sicherheitsfaktor für die Stabilität
 ELEMENT_LENGTH = DOMAIN_SIZE / (N_GRIDPOINTS - 1)   # Länge eines Elements
 
@@ -68,8 +68,11 @@ X, Y = np.meshgrid(x, y)
 u = np.zeros_like(X)   # velocity in x direction
 v = np.zeros_like(X)   # velocity in y direction
 p = np.zeros_like(X)   # pressure
-
-for _ in tqdm(range(N_ITERATIONS)):
+error = 1.
+threshold = 1e-15
+n_iter = 0
+start = time.time()
+while error > threshold:
     # 0. Initialisierung
     du_dx = central_difference_x(u)
     du_dy = central_difference_y(u)
@@ -111,9 +114,15 @@ for _ in tqdm(range(N_ITERATIONS)):
     
     # 3. Randbedingungen erzwingen
     u_next, v_next = enforce_boundary_conditions(u_next, v_next)
+    u_old = u
+    v_old = v
+    p_old = p
     u = u_next
     v = v_next
     p = p_next
+    n_iter += 1
+    error = np.max(np.abs((u - u_old) / TIME_STEP_LENGTH)) + np.max(np.abs((v - v_old) / TIME_STEP_LENGTH)) + np.max(np.abs(p - p_old))
+print(f'Overall: {n_iter:3d} iterations with error: {error} | Time used: {time.time()-start:.2f}s')   
 
 #plot_veloctiy_and_pressure(X, Y, p_next, u_next, v_next)
 # Ghia et al. (1982) - Re = 100
@@ -157,7 +166,7 @@ reference_vy_RE_100 = {
     8: 0.09233,
     0: 0.00000
 }
-
+    
 # compare to reference solution
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 5))
 # ax1 for u
@@ -173,5 +182,5 @@ ax2.set_xlabel('Vy')
 ax2.set_ylabel('v')
 ax2.set_title('Vy through Geometric Center of the Cavity')
 plt.legend()
-plt.savefig(f'plots/comparison/{N_ITERATIONS/1000}k_{N_PRESSURE_ITERATIONS}.png')
+plt.savefig(f'plots/comparison/threshold_{threshold}.png')
 plt.show()
