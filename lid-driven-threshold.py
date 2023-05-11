@@ -57,6 +57,7 @@ def plot_veloctiy_and_pressure(X, Y, p_next, u_next, v_next):
     plt.ylim((0, 1))
 
     # Show the plot
+    plt.savefig(f'plots/contours/threshold_{threshold}.png')
     plt.show()
 
 # 0. Initialisierung
@@ -69,7 +70,7 @@ u = np.zeros_like(X)   # velocity in x direction
 v = np.zeros_like(X)   # velocity in y direction
 p = np.zeros_like(X)   # pressure
 error = 1.
-threshold = 1e-15
+threshold = 1e-10
 n_iter = 0
 start = time.time()
 while error > threshold:
@@ -124,7 +125,7 @@ while error > threshold:
     error = np.max(np.abs((u - u_old) / TIME_STEP_LENGTH)) + np.max(np.abs((v - v_old) / TIME_STEP_LENGTH)) + np.max(np.abs(p - p_old))
 print(f'Overall: {n_iter:3d} iterations with error: {error} | Time used: {time.time()-start:.2f}s')   
 
-#plot_veloctiy_and_pressure(X, Y, p_next, u_next, v_next)
+plot_veloctiy_and_pressure(X, Y, p_next, u_next, v_next)
 # Ghia et al. (1982) - Re = 100
 reference_vx_RE_100 = {
     128: 1.00000,
@@ -166,21 +167,22 @@ reference_vy_RE_100 = {
     8: 0.09233,
     0: 0.00000
 }
-    
-# compare to reference solution
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 5))
-# ax1 for u
-ax1.plot(reference_vx_RE_100.keys(), reference_vx_RE_100.values(), 'bx', label='Reference')
-ax1.plot(x*128, u_next[:, int(N_GRIDPOINTS/2)],'r-', label='Simulation')
-ax1.set_xlabel('Vx')
-ax1.set_ylabel('u')
-ax1.set_title('Vx through Geometric Center of the Cavity')
-# ax2 for v
-ax2.plot(reference_vy_RE_100.keys(), reference_vy_RE_100.values(), 'bx', label='Reference')
-ax2.plot(y*128, v_next[int(N_GRIDPOINTS/2), :],'r-', label='Simulation')
-ax2.set_xlabel('Vy')
-ax2.set_ylabel('v')
-ax2.set_title('Vy through Geometric Center of the Cavity')
-plt.legend()
-plt.savefig(f'plots/comparison/threshold_{threshold}.png')
-plt.show()
+
+def compare():
+    # compare to reference solution
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 5))
+    # ax1 for u
+    ax1.plot(reference_vx_RE_100.keys(), reference_vx_RE_100.values(), 'bx', label='Reference')
+    ax1.plot(x*128, u_next[:, int(N_GRIDPOINTS/2)],'r-', label='Simulation')
+    ax1.set_xlabel('Vx')
+    ax1.set_ylabel('u')
+    ax1.set_title('Vx through Geometric Center of the Cavity')
+    # ax2 for v
+    ax2.plot(reference_vy_RE_100.keys(), reference_vy_RE_100.values(), 'bx', label='Reference')
+    ax2.plot(y*128, v_next[int(N_GRIDPOINTS/2), :],'r-', label='Simulation')
+    ax2.set_xlabel('Vy')
+    ax2.set_ylabel('v')
+    ax2.set_title('Vy through Geometric Center of the Cavity')
+    plt.legend()
+    plt.savefig(f'plots/comparison/threshold_{threshold}.png')
+    plt.show()

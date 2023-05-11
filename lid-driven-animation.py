@@ -1,10 +1,15 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
+from PIL import Image
+
+# Create a list to store the individual frames
+frames = []
+
 
 N_GRIDPOINTS = 41                       # Anzahl Gitterpunkte
 DOMAIN_SIZE = 1.                        # Länge des Gebietes
-N_ITERATIONS = 10000                    # Anzahl Zeitschritte
+N_ITERATIONS = 5000                     # Anzahl Zeitschritte
 TIME_STEP_LENGTH = 0.001                # Länge des Zeitschrittes, aufgrund der CFL-Bedingung und der Stabilität
 DENSITY = 1.                            # Dichte
 KINEMATIC_VISCOSITY = 0.01              # kinematische Viskosität
@@ -69,7 +74,7 @@ u = np.zeros_like(X)   # velocity in x direction
 v = np.zeros_like(X)   # velocity in y direction
 p = np.zeros_like(X)   # pressure
 
-for _ in tqdm(range(N_ITERATIONS)):
+for i in tqdm(range(N_ITERATIONS)):
     # 0. Initialisierung
     du_dx = central_difference_x(u)
     du_dy = central_difference_y(u)
@@ -115,13 +120,18 @@ for _ in tqdm(range(N_ITERATIONS)):
     v = v_next
     p = p_next
     plt.contourf(X[::, ::], Y[::, ::], p_next[::, ::])
-    plt.colorbar()
-
     plt.quiver(X[::, ::], Y[::, ::], u_next[::, ::], v_next[::, ::])
+    plt.colorbar()
+    plt.title(f'Velocity and Pressure Contours')
+    plt.xlabel('X-axis')
+    plt.ylabel('Y-axis')
     plt.xlim((0, 1))
     plt.ylim((0, 1))
-    
-    plt.draw()
-    plt.pause(0.05)
+    plt.text(0.5, 0.01, f'Iteration: {i}/{N_ITERATIONS}', horizontalalignment='center', fontsize=12)
+    fig = plt.gcf()
+    fig.canvas.draw()
+    image = Image.frombytes('RGB', fig.canvas.get_width_height(), fig.canvas.tostring_rgb())
     plt.clf()
+    frames.append(image)
     
+frames[0].save('animation.gif', format='GIF', append_images=frames[1:], save_all=True, duration=200, loop=0)

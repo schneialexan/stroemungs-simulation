@@ -4,7 +4,7 @@ from tqdm import tqdm
 
 N_GRIDPOINTS = 41                       # Anzahl Gitterpunkte
 DOMAIN_SIZE = 1.                        # Länge des Gebietes
-N_ITERATIONS = 5000                    # Anzahl Zeitschritte
+N_ITERATIONS = 4000000                    # Anzahl Zeitschritte
 TIME_STEP_LENGTH = 0.001                # Länge des Zeitschrittes, aufgrund der CFL-Bedingung und der Stabilität
 DENSITY = 1.                            # Dichte
 KINEMATIC_VISCOSITY = 0.01              # kinematische Viskosität
@@ -57,6 +57,7 @@ def plot_veloctiy_and_pressure(X, Y, p_next, u_next, v_next):
     plt.ylim((0, 1))
 
     # Show the plot
+    plt.savefig(f'plots/contours/{N_ITERATIONS/1000}k_{N_PRESSURE_ITERATIONS}.png')
     plt.show()
 
 # 0. Initialisierung
@@ -115,7 +116,7 @@ for _ in tqdm(range(N_ITERATIONS)):
     v = v_next
     p = p_next
 
-#plot_veloctiy_and_pressure(X, Y, p_next, u_next, v_next)
+plot_veloctiy_and_pressure(X, Y, p_next, u_next, v_next)
 # Ghia et al. (1982) - Re = 100
 reference_vx_RE_100 = {
     128: 1.00000,
@@ -158,20 +159,21 @@ reference_vy_RE_100 = {
     0: 0.00000
 }
 
-# compare to reference solution
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 5))
-# ax1 for u
-ax1.plot(reference_vx_RE_100.keys(), reference_vx_RE_100.values(), 'bx', label='Reference')
-ax1.plot(x*128, u_next[:, int(N_GRIDPOINTS/2)],'r-', label='Simulation')
-ax1.set_xlabel('Vx')
-ax1.set_ylabel('u')
-ax1.set_title('Vx through Geometric Center of the Cavity')
-# ax2 for v
-ax2.plot(reference_vy_RE_100.keys(), reference_vy_RE_100.values(), 'bx', label='Reference')
-ax2.plot(y*128, v_next[int(N_GRIDPOINTS/2), :],'r-', label='Simulation')
-ax2.set_xlabel('Vy')
-ax2.set_ylabel('v')
-ax2.set_title('Vy through Geometric Center of the Cavity')
-plt.legend()
-plt.savefig(f'plots/comparison/{N_ITERATIONS/1000}k_{N_PRESSURE_ITERATIONS}.png')
-plt.show()
+def plot_comp():
+    # compare to reference solution
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 5))
+    # ax1 for u
+    ax1.plot(reference_vx_RE_100.keys(), reference_vx_RE_100.values(), 'bx', label='Reference')
+    ax1.plot(x*128, u_next[:, int(N_GRIDPOINTS/2)],'r-', label='Simulation')
+    ax1.set_xlabel('Vx')
+    ax1.set_ylabel('u')
+    ax1.set_title('Vx through Geometric Center of the Cavity')
+    # ax2 for v
+    ax2.plot(reference_vy_RE_100.keys(), reference_vy_RE_100.values(), 'bx', label='Reference')
+    ax2.plot(y*128, v_next[int(N_GRIDPOINTS/2), :],'r-', label='Simulation')
+    ax2.set_xlabel('Vy')
+    ax2.set_ylabel('v')
+    ax2.set_title('Vy through Geometric Center of the Cavity')
+    plt.legend()
+    plt.savefig(f'plots/comparison/{N_ITERATIONS/1000}k_{N_PRESSURE_ITERATIONS}.png')
+    plt.show()
